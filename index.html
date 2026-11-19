@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo de click y touchstart</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            height: 100vh;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            margin: 0;
+        }
+        #toggleBox {
+            width: 200px;
+            height: 200px;
+            background: #4caf50;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent; /* elimina el highlight en iOS */
+            transition: background 0.3s ease;
+        }
+        #toggleBox.active {
+            background: #ff5722;
+        }
+    </style>
+</head>
+<body>
+
+<div id="toggleBox">Pulsa o toca aquí</div>
+
+<script>
+    (function () {
+        const box = document.getElementById('toggleBox');
+
+        // Función que alterna la clase 'active'
+        function toggleActive(e) {
+            // Evita que el evento 'click' se dispare después de 'touchstart' en algunos navegadores
+            e.preventDefault();
+            box.classList.toggle('active');
+        }
+
+        // Añadimos ambos listeners: click (para escritorio) y touchstart (para móviles/táctiles)
+        box.addEventListener('click', toggleActive);
+        box.addEventListener('touchstart', toggleActive);
+
+        // Opcional: si quieres que el gesto de desplazamiento no active el toggle,
+        // puedes usar un pequeño umbral de movimiento.
+        let startX = 0, startY = 0;
+        const MOVE_THRESHOLD = 10; // píxeles
+
+        box.addEventListener('touchstart', function (e) {
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+        }, {passive: true});
+
+        box.addEventListener('touchmove', function (e) {
+            const touch = e.touches[0];
+            const dx = Math.abs(touch.clientX - startX);
+            const dy = Math.abs(touch.clientY - startY);
+            if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD) {
+                // El usuario está desplazándose, cancelamos el toggle
+                box.removeEventListener('click', toggleActive);
+                box.removeEventListener('touchstart', toggleActive);
+            }
+        }, {passive: true});
+
+        // Restauramos los listeners al terminar el gesto
+        box.addEventListener('touchend', function () {
+            box.addEventListener('click', toggleActive);
+            box.addEventListener('touchstart', toggleActive);
+        });
+    })();
+</script>
+
+</body>
+</html>
